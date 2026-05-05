@@ -1,3 +1,4 @@
+﻿from ai_client import client as _fallback_client
 print("[DEBUG] main.py loading...")
 
 # Fix for Python 3.14 Windows asyncio issues
@@ -43,9 +44,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-OPENAI_MODEL   = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-client = OpenAI(api_key=OPENAI_API_KEY)
+client = _fallback_client
 
 # ─── MODELS ───────────────────────────────────────────
 
@@ -186,7 +185,7 @@ def get_grade_language_profile(grade_level: str) -> str:
 def call_openai(system_prompt: str, user_prompt: str, max_tokens: int = 3500) -> str:
     try:
         response = client.chat.completions.create(
-            model=OPENAI_MODEL,
+            model=GROQ_MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user",   "content": user_prompt},
@@ -947,7 +946,7 @@ async def generate_adaptive_question(data: dict):
         Include 4 multiple choice options and mark the correct answer."""
 
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": "You are an expert educator. Generate a clear, engaging educational question."},
                 {"role": "user", "content": prompt}
@@ -1150,7 +1149,7 @@ Rules:
                 {"role": "system", "content": "You are a quiz generator. Always respond with valid JSON only. No markdown."},
                 {"role": "user", "content": prompt},
             ],
-            model=OPENAI_MODEL, temperature=0.5, max_tokens=2048,
+            model=GROQ_MODEL, temperature=0.5, max_tokens=2048,
         )
         import re as _re
         text = completion.choices[0].message.content.strip()

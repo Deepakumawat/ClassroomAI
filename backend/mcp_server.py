@@ -1,3 +1,4 @@
+﻿from ai_client import client as _fallback_client
 import os
 import sys
 from dotenv import load_dotenv
@@ -7,7 +8,7 @@ from mcp.server.fastmcp import FastMCP
 load_dotenv()
 
 mcp = FastMCP("ClassroomAI")
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = _fallback_client)
 
 # Import RAG modules (will be available after pip install completes)
 try:
@@ -20,7 +21,7 @@ except ImportError:
 
 def call_openai(system_prompt: str, user_prompt: str, max_tokens: int = 3500) -> str:
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="llama-3.3-70b-versatile",
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user",   "content": user_prompt},
