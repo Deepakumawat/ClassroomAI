@@ -2,13 +2,12 @@
 import os
 import sys
 from dotenv import load_dotenv
-from openai import OpenAI
 from mcp.server.fastmcp import FastMCP
 
 load_dotenv()
 
 mcp = FastMCP("ClassroomAI")
-client = _fallback_client)
+client = _fallback_client
 
 # Import RAG modules (will be available after pip install completes)
 try:
