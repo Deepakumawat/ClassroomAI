@@ -1,4 +1,4 @@
-﻿from ai_client import client as _fallback_client
+﻿from ai_client import client as _fallback_client, GROQ_MODEL
 print("[DEBUG] main.py loading...")
 
 # Fix for Python 3.14 Windows asyncio issues
