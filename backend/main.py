@@ -20,6 +20,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from database import db
 from mcp_tools import get_chat_history, check_usage_limit, increment_usage
+from cbse_kb import CBSE_KB, retrieve_context as cbse_retrieve, get_subjects as cbse_subjects, get_chapters as cbse_chapters
 
 print("[DEBUG] All imports complete")
 load_dotenv()
@@ -181,6 +182,19 @@ def get_grade_language_profile(grade_level: str) -> str:
     return "LANGUAGE LEVEL: Use clear, age-appropriate language for the specified grade level."
 
 
+def cbse_curriculum_block(topic: str, grade_level: str, subject: str = "") -> str:
+    """Return a CBSE curriculum context block (from the GRADE Wise TOC RAG) to
+    ground a generator's output in the official CBSE chapters for that grade."""
+    ctx = cbse_retrieve(topic, grade_level, subject or "")
+    if not ctx:
+        return ""
+    return (
+        "\n\n" + ctx +
+        "\n\nIMPORTANT: Align ALL content to the official CBSE curriculum above — use the same "
+        "chapter scope, terminology, and concept sequence a CBSE teacher would expect for this grade.\n"
+    )
+
+
 def call_openai(system_prompt: str, user_prompt: str, max_tokens: int = 3500) -> str:
     try:
         response = client.chat.completions.create(
@@ -197,6 +211,12 @@ def call_openai(system_prompt: str, user_prompt: str, max_tokens: int = 3500) ->
         raise HTTPException(status_code=500, detail=f"AI error: {str(e)}")
 
 # ─── ROUTES ───────────────────────────────────────────
+
+@app.get("/api/curriculum")
+def get_curriculum():
+    """Full CBSE grade -> subject -> [chapters] map for the topic pickers."""
+    return CBSE_KB
+
 
 @app.post("/api/worksheet")
 def generate_worksheet(req: WorksheetRequest):
@@ -278,6 +298,7 @@ def generate_worksheet(req: WorksheetRequest):
         "- ANSWER KEY section at bottom with answers numbered to match\n"
         "- Include a one-sentence rationale for each answer in the key\n\n"
         "Write ONLY plain text. No **, ##, or any markdown whatsoever."
+        + cbse_curriculum_block(req.topic, req.grade_level, req.subject)
     )
 
     result = call_openai(system_prompt, user_prompt)
@@ -375,6 +396,7 @@ def generate_lesson_plan(req: LessonPlanRequest):
             "7. COMMON MISCONCEPTIONS - 2-3 things students often misunderstand with correct explanations\n\n"
             f"Make all content age-appropriate for {req.grade_level}. "
             "Write in plain text. No **, ##, or markdown."
+            + cbse_curriculum_block(req.topic, req.grade_level, req.subject)
         )
 
         topic_overview = call_openai(topic_system, topic_prompt, max_tokens=2500)
@@ -451,6 +473,7 @@ def generate_lesson_plan(req: LessonPlanRequest):
         "    - Ideas for the follow-up lesson\n\n"
         "Write everything in plain text. No **, ##, or markdown formatting of any kind."
         f"{lesson_material_note}"
+        + cbse_curriculum_block(req.topic, req.grade_level, req.subject)
     )
 
     lesson_result = call_openai(system_prompt, user_prompt, max_tokens=4000)
@@ -536,6 +559,7 @@ def generate_mc_assessment(req: MCAssessmentRequest):
         "- Writing lines for short answer questions\n\n"
         f"ANSWER KEY: {answer_key_note}\n\n"
         "Write everything in plain text. No **, ##, or any markdown."
+        + cbse_curriculum_block(req.topic, req.grade_level, req.subject)
     )
 
     result = call_openai(system_prompt, user_prompt, max_tokens=3500)
@@ -551,7 +575,7 @@ def auto_generate(req: AutoGenerateRequest):
     if not req.subject.strip():
         raise HTTPException(status_code=400, detail="Subject is required.")
 
-    lang = get_grade_language_profile(req.grade_level)
+    lang = get_grade_language_profile(req.grade_level) + cbse_curriculum_block(req.topic, req.grade_level, req.subject)
 
     # ── Worksheet ──────────────────────────────────────
     type_map = {
@@ -1149,7 +1173,8 @@ Rules:
 - All 4 options must be plausible (no obviously wrong answers)
 - explanation must be educational and friendly
 - questions must be appropriate for grade level
-- Use simple language for younger grades"""
+- Use simple language for younger grades
+{cbse_curriculum_block(request.topic, request.grade_level, request.subject)}"""
 
     try:
         completion = client.chat.completions.create(
