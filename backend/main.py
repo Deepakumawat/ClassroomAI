@@ -231,6 +231,7 @@ def generate_worksheet(req: WorksheetRequest):
     q_type  = type_map.get(req.worksheet_type, type_map["mixed"])
     diff    = diff_map.get(req.differentiation_level, diff_map["grade-level"])
     blooms  = blooms_map.get(req.blooms_level, blooms_map["mixed"])
+    lang    = get_grade_language_profile(req.grade_level)
 
     word_bank_note = ""
     if req.include_word_bank and req.worksheet_type in ("fill_blank", "mixed"):
@@ -250,6 +251,7 @@ def generate_worksheet(req: WorksheetRequest):
         "You are an expert classroom teacher and curriculum specialist with 20+ years of experience. "
         "Create professional, print-ready worksheets that are engaging, pedagogically sound, and appropriately rigorous. "
         "Ensure questions are clear, unambiguous, and aligned to the specified grade level and Bloom's level. "
+        f"\n\n{lang}\n\n"
         + ("When source material is provided, derive ALL questions directly from that content. " if req.source_material.strip() else "")
         + "Write in plain text ONLY — absolutely no markdown, no asterisks, no hashtags, no bold symbols. "
         "Use CAPITAL LETTERS for section headers and dashes for separators."
@@ -319,6 +321,8 @@ def generate_lesson_plan(req: LessonPlanRequest):
     if not req.topic.strip():
         raise HTTPException(status_code=400, detail="Topic is required.")
 
+    lang = get_grade_language_profile(req.grade_level)
+
     style_map = {
         "mixed":       "a variety of learning modalities (visual, auditory, and kinesthetic activities combined)",
         "visual":      "visual learning strategies — diagrams, charts, graphic organizers, color-coding, videos, visual aids",
@@ -352,6 +356,7 @@ def generate_lesson_plan(req: LessonPlanRequest):
             "You are a subject matter expert and experienced educator. "
             "Provide comprehensive, authoritative, and student-friendly educational content about topics. "
             "Make content accessible for the specified grade level while maintaining academic rigor. "
+            f"\n\n{lang}\n\n"
             "Write in plain text ONLY — no markdown, no asterisks, no hashtags."
         )
 
@@ -387,6 +392,7 @@ def generate_lesson_plan(req: LessonPlanRequest):
         "differentiated instruction, and modern pedagogical best practices. "
         "Create detailed, actionable, classroom-ready lesson plans any teacher can pick up and use immediately. "
         "Include specific timing estimates, concrete student activities, and teacher facilitation notes. "
+        f"\n\n{lang}\n\n"
         + ("When source material is provided, align ALL activities and content directly to it. " if req.source_material.strip() else "")
         + "Write in plain text ONLY — no markdown, no asterisks, no hashtags. "
         "Use numbered sections with UPPERCASE HEADERS."
@@ -457,6 +463,8 @@ def generate_mc_assessment(req: MCAssessmentRequest):
     if not req.topic.strip():
         raise HTTPException(status_code=400, detail="Topic is required.")
 
+    lang = get_grade_language_profile(req.grade_level)
+
     blooms_map = {
         "remember":   "recall and recognition (define, identify, name, list) — Bloom's Level 1",
         "understand": "comprehension (explain, describe, summarize, classify) — Bloom's Level 2",
@@ -503,6 +511,7 @@ def generate_mc_assessment(req: MCAssessmentRequest):
         "Create high-quality, fair, and valid assessments. "
         "All distractors (wrong answers) must be plausible but clearly incorrect to students who mastered the material. "
         "Avoid trick questions, double negatives, and 'all of the above' options. "
+        f"\n\n{lang}\n\n"
         + ("When source material is provided, ALL questions must come directly from that content. " if req.source_material.strip() else "")
         + "Write in plain text ONLY — no markdown, no asterisks, no hashtags."
     )
