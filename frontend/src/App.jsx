@@ -1,7 +1,8 @@
 import React from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
+import LandingPage from './pages/LandingPage'
 import Dashboard from './pages/Dashboard'
 import WorksheetGenerator from './pages/WorksheetGenerator'
 import LessonPlanGenerator from './pages/LessonPlanGenerator'
@@ -10,27 +11,41 @@ import AutoGenerator from './pages/AutoGenerator'
 import TeacherInsights from './pages/TeacherInsights'
 import QuizGenerator from './pages/QuizGenerator'
 
+// App shell (sidebar + header) wraps the tool pages via <Outlet/>
+function AppLayout() {
+  return (
+    <div className="app-shell">
+      <Sidebar />
+      <div className="main-content">
+        <Header />
+        <div className="page-body">
+          <Outlet />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="app-shell">
-        <Sidebar />
-        <div className="main-content">
-          <Header />
-          <div className="page-body">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/auto-generate" element={<AutoGenerator />} />
-              <Route path="/worksheet" element={<WorksheetGenerator />} />
-              <Route path="/lesson-plan" element={<LessonPlanGenerator />} />
-              <Route path="/mc-assessment" element={<MCAssessment />} />
-              <Route path="/teacher-insights" element={<TeacherInsights />} />
-              <Route path="/quiz-generator" element={<QuizGenerator />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          </div>
-        </div>
-      </div>
+      <Routes>
+        {/* Standalone landing page (no sidebar/header) */}
+        <Route path="/" element={<LandingPage />} />
+
+        {/* App pages share the sidebar + header shell */}
+        <Route element={<AppLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/auto-generate" element={<AutoGenerator />} />
+          <Route path="/worksheet" element={<WorksheetGenerator />} />
+          <Route path="/lesson-plan" element={<LessonPlanGenerator />} />
+          <Route path="/mc-assessment" element={<MCAssessment />} />
+          <Route path="/teacher-insights" element={<TeacherInsights />} />
+          <Route path="/quiz-generator" element={<QuizGenerator />} />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
     </BrowserRouter>
   )
 }
