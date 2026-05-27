@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
+import AuthModal from '../components/AuthModal'
 
 const TOOLS = [
   {
@@ -50,6 +51,7 @@ const TOOLS = [
 export default function LandingPage() {
   const navigate = useNavigate()
   const { isDark, toggleTheme } = useTheme()
+  const [authMode, setAuthMode] = useState(null) // 'signup' | 'login' | null
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text-1)', fontFamily: 'var(--font)', transition: 'background 0.3s ease, color 0.3s ease' }}>
@@ -67,9 +69,13 @@ export default function LandingPage() {
             style={{ width: 40, height: 40, borderRadius: 10, border: '1.5px solid var(--border)', background: 'var(--surface)', color: 'var(--text-1)', cursor: 'pointer', fontSize: 18 }}>
             {isDark ? '☀️' : '🌙'}
           </button>
-          <button onClick={() => navigate('/dashboard')}
+          <button onClick={() => setAuthMode('login')}
+            style={{ padding: '10px 18px', borderRadius: 10, border: '1.5px solid var(--border)', background: 'var(--surface)', color: 'var(--text-1)', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+            Log In
+          </button>
+          <button onClick={() => setAuthMode('signup')}
             style={{ padding: '10px 22px', borderRadius: 10, border: 'none', background: 'var(--accent)', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', boxShadow: 'var(--shadow)' }}>
-            Open App →
+            Sign Up Free
           </button>
         </div>
       </header>
@@ -86,7 +92,7 @@ export default function LandingPage() {
           ClassroomAI gives teachers an instant set of worksheets, lesson plans, quizzes and assessments — every one calibrated to your grade and grounded in the official CBSE curriculum.
         </p>
         <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <button onClick={() => navigate('/dashboard')}
+          <button onClick={() => setAuthMode('signup')}
             style={{ padding: '14px 30px', borderRadius: 12, border: 'none', background: 'var(--accent)', color: '#fff', fontWeight: 700, fontSize: 16, cursor: 'pointer', boxShadow: 'var(--shadow-lg)' }}>
             Get Started Free →
           </button>
@@ -125,6 +131,14 @@ export default function LandingPage() {
         </div>
         <div style={{ marginTop: 6 }}>© 2025 ClassroomAI — CBSE-aligned teaching tools.</div>
       </footer>
+
+      {authMode && (
+        <AuthModal
+          mode={authMode}
+          onClose={() => setAuthMode(null)}
+          onSwitch={() => setAuthMode(m => (m === 'signup' ? 'login' : 'signup'))}
+        />
+      )}
     </div>
   )
 }
