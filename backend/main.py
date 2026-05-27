@@ -127,6 +127,7 @@ class PatternRequest(BaseModel):
 
 class ChatHistoryRequest(BaseModel):
     teacher_id: str
+    limit: int = 7
 
 class UsageCheckRequest(BaseModel):
     teacher_id: str
@@ -788,10 +789,11 @@ print("[STARTUP] Loading chat history & usage endpoints...")
 
 @app.post("/api/chat-history")
 async def get_chat_history_endpoint(request: ChatHistoryRequest):
-    """Get last 7 chats for a teacher"""
+    """Get recent chats for a teacher (full content included)."""
     try:
-        result = get_chat_history(request.teacher_id)
-        return result
+        limit = getattr(request, "limit", None) or 7
+        chats = db.get_last_7_chats(request.teacher_id, limit)
+        return {"teacher_id": request.teacher_id, "chats": chats, "count": len(chats), "success": True}
     except Exception as e:
         print(f"❌ Error getting chat history: {e}")
         raise HTTPException(status_code=500, detail=str(e))

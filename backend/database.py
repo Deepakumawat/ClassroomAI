@@ -156,18 +156,23 @@ class ChatDatabase:
 
         return chat_id
 
-    def get_last_7_chats(self, teacher_id: str) -> list:
-        """Get last 7 chats for a teacher"""
+    def get_last_7_chats(self, teacher_id: str, limit: int = 7) -> list:
+        """Get the most recent chats for a teacher (full content included)."""
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
+
+        try:
+            limit = max(1, min(int(limit), 200))
+        except (TypeError, ValueError):
+            limit = 7
 
         c.execute('''
             SELECT id, tool_name, topic, grade_level, subject, response_preview, response_content, created_at
             FROM chat_history
             WHERE teacher_id = ?
             ORDER BY created_at DESC
-            LIMIT 7
-        ''', (teacher_id,))
+            LIMIT ?
+        ''', (teacher_id, limit))
 
         rows = c.fetchall()
         conn.close()

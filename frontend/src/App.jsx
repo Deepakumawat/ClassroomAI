@@ -10,6 +10,7 @@ import MCAssessment from './pages/MCAssessment'
 import AutoGenerator from './pages/AutoGenerator'
 import TeacherInsights from './pages/TeacherInsights'
 import QuizGenerator from './pages/QuizGenerator'
+import HistoryPage from './pages/HistoryPage'
 
 // App shell (sidebar + header) wraps the tool pages via <Outlet/>
 function AppLayout() {
@@ -42,6 +43,7 @@ export default function App() {
           <Route path="/mc-assessment" element={<MCAssessment />} />
           <Route path="/teacher-insights" element={<TeacherInsights />} />
           <Route path="/quiz-generator" element={<QuizGenerator />} />
+          <Route path="/history" element={<HistoryPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" />} />
